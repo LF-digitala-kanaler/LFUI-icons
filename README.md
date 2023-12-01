@@ -67,7 +67,7 @@ Please document the changes that you make in the pull request, along with potent
 
 ## Adding an icon
 
-Export icon from sketch/figma and make sure to only use filled outlines of the color `#ff0000`. That color will be transformed to `currentColor` when the icon sprites are built.
+Export icon from sketch/figma and make sure to only use filled outlines of the color `#FF0000`. That color will be transformed to `currentColor` when the icon sprites are built.
 
 Place the new icon in `src/{size}` and build, `npm run build`.
 
