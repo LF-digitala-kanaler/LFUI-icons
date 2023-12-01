@@ -42,7 +42,7 @@ jobs:
       - name: Build
         run: npm run build
 
-  publish-npm:
+  publish_npm:
     needs:
       - build
     runs-on: ubuntu-latest
