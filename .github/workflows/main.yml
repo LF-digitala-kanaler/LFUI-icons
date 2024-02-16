@@ -1,36 +1,67 @@
+# This workflow will run tests and build icons for LFUI v2 when a pull request to branch support/2.x is closed.
+# It's required that the pull request have a 'minor' or 'patch' label on it.
+# The NPM package will be published with the v2-patch tag.
+
+name: Node.js Package
+
 on:
   pull_request:
-    types: closed
-
-name: Create Release
+    types: 
+      - closed
+    branches:
+      - 'support/2.x'
 
 jobs:
-  build:
-    name: Create Release
+  check_labels:
+    name: 'Check PR Labels'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: mheap/github-action-required-labels@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          fetch-depth: 0
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v5
+          mode: exactly
+          count: 1
+          labels: 'minor, patch'
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          default_bump: minor 
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install and Build 🔧 # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
-        run: |
-          yarn install
-          yarn build
-      - uses: marvinpinto/action-automatic-releases@latest
-        with: # See https://github.com/marvinpinto/action-automatic-releases/tree/v1.1.0#supported-parameters
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ steps.tag_version.outputs.new_tag }}"
-          prerelease: false
-          title: "LFUI-icons ${{ steps.tag_version.outputs.new_tag }}"
-          files: |
-            CHANGELOG.md    
+          node-version: 16
           
+      - name: Test
+        run: npm test
+
+      - name: Pre-build
+        run: npm run prebuild
+
+      - name: Build
+        run: npm run build
+
+  publish_npm:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+          scope: '@lansforsakringar'
           
-      
+      - name: Apply version bump (minor)
+        if: contains(github.event.pull_request.labels.*.name, 'minor')
+        run: npm version minor
+      - name: Apply version bump (patch)
+        if: contains(github.event.pull_request.labels.*.name, 'patch')
+        run: npm version patch
+        
+      - run: npm publish --tag v2-patch
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        
