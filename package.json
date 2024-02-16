@@ -1,6 +1,6 @@
 {
   "name": "@lansforsakringar/icons",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "LFUI icons",
   "repository": "https://github.com/LF-digitala-kanaler/LFUI-icons.git",
   "license": "MIT",
@@ -23,6 +23,6 @@
     "test": "standard"
   },
   "dependencies": {
-  	"standard": "^17.1.0"
+    "standard": "^17.1.0"
   }
 }
